@@ -10,20 +10,17 @@ jobs:
       - name: compile arm64 binary
         run: |
           make clean
-          # 交叉编译 arm64
           swiftc -target arm64-apple-macos13.0 FloatClock.swift -o bin-arm64/FloatClock
 
       - name: compile x86_64 binary (Intel)
         run: |
           mkdir -p bin-x86_64
-          # 交叉编译 x86_64‑macOS13
           swiftc -target x86_64-apple-macos13.0 FloatClock.swift -o bin-x86_64/FloatClock
 
       - name: lipo merge → Universal 通用二进制
         run: |
           mkdir -p bin-universal
           lipo -create bin-arm64/FloatClock bin-x86_64/FloatClock -output bin-universal/FloatClock
-          # 校验架构，打印输出
           lipo -info bin-universal/FloatClock
 
       - name: Assemble valid .app bundle
@@ -31,9 +28,7 @@ jobs:
           mkdir -p FloatClock.app/Contents/MacOS
           mkdir -p FloatClock.app/Contents/Resources
           cp bin-universal/FloatClock FloatClock.app/Contents/MacOS/FloatClock
-
-          # 完整有效的Info.plist，最低系统macOS13.0
-          cat > FloatClock.app/Contents/Info.plist <<'EOF'
+cat > FloatClock.app/Contents/Info.plist <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
