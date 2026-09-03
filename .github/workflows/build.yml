@@ -29,26 +29,7 @@ jobs:
           mkdir -p FloatClock.app/Contents/MacOS
           mkdir -p FloatClock.app/Contents/Resources
           cp bin-universal/FloatClock FloatClock.app/Contents/MacOS/FloatClock
-          printf '<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>FloatClock</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.maddada.FloatClock</string>
-    <key>CFBundleName</key>
-    <string>FloatClock</string>
-    <key>CFBundleVersion</key>
-    <string>1.0</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
-    <key>LSUIElement</key>
-    <true/>
-</dict>
-</plist>' > FloatClock.app/Contents/Info.plist
+          echo PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48IURPQ1RZUEUgcGxpc3QgUFVCTElDICItLy9BcHBsZS8vRFBMVFMvMS4wLy9FTiIgImh0dHA6Ly93d3cuYXBwbGUuY29tL0RURHMvUHJvcGVydHlMaXN0LTEuMC5kdGQiPjxwbGlzdCB2ZXJzaW9uPSIxLjAiPjxkaWN0PjxrZXk+Q0ZCdW5kbGVFeGVjdXRhYmxlPC9rZXk+PHN0cmluZz5NYWRkYUZsb2F0aW5nQ2xvY2s8L3N0cmluZz48a2V5PkNGQnVuZGxlSWRlbnRpZmllcjwva2V5PjxzdHJpbmc+Y29tLm1hZGRhZGEuTWFkZGFGbG9hdGluZ0Nsb2NrPC9zdHJpbmc+PGtleT5DRkJ1bmRsZU5hbWU8L2tleT48c3RyaW5nPk1hZGRhRmxvYXRpbmdDbG9jazwvc3RyaW5nPjxrZXk+Q0ZCdW5kbGVWZXJzaW9uPC9rZXk+PHN0cmluZz4xLjA8L3N0cmluZz48a2V5PkNGQnVuZGxlU2hvcnRWZXJzaW9uU3RyaW5nPC9rZXk+PHN0cmluZz4xLjA8L3N0cmluZz48a2V5PkxTTWluaW11bVN5c3RlbVZlcnNpb248L2tleT48c3RyaW5nPjEzLjA8L3N0cmluZz48a2V5PkxTVUlFbGVtZW50PC9rZXk+PHRydWUvPjwvZGljdD48L3BsaXN0Pg== | base64 --decode > FloatClock.app/Contents/Info.plist
 
       - name: Zip app
         run: zip -r FloatClock-universal-macos13.zip FloatClock.app
@@ -57,67 +38,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: FloatClock-universal-macos13
-          path: FloatClock-universal-macos13.zip
-          if-no-files-found: error
-name: Build FloatClock Universal(arm64+x86_64)
-on: workflow_dispatch
-
-jobs:
-  build:
-    runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: compile arm64 binary
-        run: |
-          make clean
-          swiftc -target arm64-apple-macos13.0 FloatClock.swift -o bin-arm64/FloatClock
-
-      - name: compile x86_64 binary (Intel)
-        run: |
-          mkdir -p bin-x86_64
-          swiftc -target x86_64-apple-macos13.0 FloatClock.swift -o bin-x86_64/FloatClock
-
-      - name: lipo merge → Universal 通用二进制
-        run: |
-          mkdir -p bin-universal
-          lipo -create bin-arm64/FloatClock bin-x86_64/FloatClock -output bin-universal/FloatClock
-          lipo -info bin-universal/FloatClock
-
-      - name: Assemble valid .app bundle
-        run: |
-          mkdir -p FloatClock.app/Contents/MacOS
-          mkdir -p FloatClock.app/Contents/Resources
-          cp bin-universal/FloatClock FloatClock.app/Contents/MacOS/FloatClock
-cat > FloatClock.app/Contents/Info.plist <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>FloatClock</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.maddada.FloatClock</string>
-    <key>CFBundleName</key>
-    <string>FloatClock</string>
-    <key>CFBundleVersion</key>
-    <string>1.0</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
-    <key>LSUIElement</key>
-    <true/>
-</dict>
-</plist>
-EOF
-
-      - name: Zip app
-        run: zip -r FloatClock-universal-macos13.zip FloatClock.app
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: FloatClock‑universal‑macos13
           path: FloatClock-universal-macos13.zip
           if-no-files-found: error
