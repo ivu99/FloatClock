@@ -10,6 +10,67 @@ jobs:
       - name: compile arm64 binary
         run: |
           make clean
+          mkdir -p bin-arm64
+          swiftc -target arm64-apple-macos13.0 FloatClock.swift -o bin-arm64/FloatClock
+
+      - name: compile x86_64 binary (Intel)
+        run: |
+          mkdir -p bin-x86_64
+          swiftc -target x86_64-apple-macos13.0 FloatClock.swift -o bin-x86_64/FloatClock
+
+      - name: lipo merge → Universal 通用二进制
+        run: |
+          mkdir -p bin-universal
+          lipo -create bin-arm64/FloatClock bin-x86_64/FloatClock -output bin-universal/FloatClock
+          lipo -info bin-universal/FloatClock
+
+      - name: Assemble valid .app bundle
+        run: |
+          mkdir -p FloatClock.app/Contents/MacOS
+          mkdir -p FloatClock.app/Contents/Resources
+          cp bin-universal/FloatClock FloatClock.app/Contents/MacOS/FloatClock
+          printf '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>FloatClock</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.maddada.FloatClock</string>
+    <key>CFBundleName</key>
+    <string>FloatClock</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSUIElement</key>
+    <true/>
+</dict>
+</plist>' > FloatClock.app/Contents/Info.plist
+
+      - name: Zip app
+        run: zip -r FloatClock-universal-macos13.zip FloatClock.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: FloatClock-universal-macos13
+          path: FloatClock-universal-macos13.zip
+          if-no-files-found: error
+name: Build FloatClock Universal(arm64+x86_64)
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: compile arm64 binary
+        run: |
+          make clean
           swiftc -target arm64-apple-macos13.0 FloatClock.swift -o bin-arm64/FloatClock
 
       - name: compile x86_64 binary (Intel)
